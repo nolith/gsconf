@@ -5,7 +5,7 @@ void shell_vlan(char ** argv, int elem) {
         int n, m, o;
         
         if (elem == 1) {
-                printf(" vlan [show|enable|show|add|del|assign|revoke] \n");
+                printf(" vlan [enable|show|add|del|assign|revoke] \n");
                 return;
         }
         

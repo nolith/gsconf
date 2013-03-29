@@ -155,7 +155,11 @@ int shell (void) {
                 elem = split(&argv, cmd, " ");
                 
 
-                
+                if (strncmp(argv[0], "help", 4) == 0) {
+                        printf("Available commands: \n");
+                        printf("[discover|select|nodev|ip|vlan|port|sys] \n");
+                }
+
                 if (strncmp(argv[0], "discover", 8) == 0) {
                         n = gs105e_discover();
                         printf("Discovered \033[92m%i\033[0m devices\n", n);
@@ -222,14 +226,6 @@ int shell (void) {
                 if (strncmp(argv[0], "sys", 3) == 0) {
                         shell_sys(argv, elem);
                 }
-                
-                if (strncmp(argv[0], "help", 4) == 0) {
-                        printf("Available commands: \n");
-                        printf("[discover|select|nodev|ip|vlan|port|sys] \n");
-                }
-
-                
-                
         }
 }
 
