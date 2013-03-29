@@ -1,3 +1,8 @@
+#ifdef OSX
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#include <net/if_dl.h>
+#endif
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <stdlib.h>
@@ -9,12 +14,15 @@
 #include <net/if.h>
 #include "socket.h"
 #include <sys/select.h>
+#include <errno.h>
+
 int sock;
 
 
 struct sockaddr_in sockAddr;
 
-unsigned char * get_mac(const char *intf) {
+#ifdef LINUX
+unsigned char * linux_get_mac(const char *intf) {
         unsigned char * mac = (unsigned char *) malloc(sizeof(unsigned char *) * 6);
         struct ifreq iface;
         unsigned char i;
@@ -32,6 +40,57 @@ unsigned char * get_mac(const char *intf) {
                 mac[i] = (unsigned char)iface.ifr_hwaddr.sa_data[i];
         
         return mac;
+}
+#endif
+
+#ifdef OSX
+unsigned char * bsd_get_mac(const char *intf) {
+        int32_t     mib[6];
+        size_t     len;
+        char      *buf;
+        unsigned char   *mac;
+        struct if_msghdr  *ifm;
+        struct sockaddr_dl  *sdl;
+
+        mib[0] = CTL_NET;
+        mib[1] = AF_ROUTE;
+        mib[2] = 0;
+        mib[3] = AF_LINK;
+        mib[4] = NET_RT_IFLIST;
+        if ((mib[5] = if_nametoindex(intf)) == 0) {
+                perror("if_nametoindex error");
+                exit(2);
+        }
+
+        if (sysctl(mib, 6, NULL, &len, NULL, 0) < 0) {
+                perror("sysctl 1 error");
+                exit(3);
+        }
+
+        if ((buf = malloc(len)) == NULL) {
+                perror("malloc error");
+                exit(4);
+        }
+
+        if (sysctl(mib, 6, buf, &len, NULL, 0) < 0) {
+                perror("sysctl 2 error");
+                exit(5);
+        }
+
+        ifm = (struct if_msghdr *)buf;
+        sdl = (struct sockaddr_dl *)(ifm + 1);
+        mac = (unsigned char *)LLADDR(sdl);
+        return mac;
+}
+#endif
+
+unsigned char * get_mac(const char *intf) {
+#ifdef LINUX
+        return linux_get_mac(intf);
+#endif
+#ifdef OSX
+        return bsd_get_mac(intf);
+#endif
 }
 
 void init_socket() {
