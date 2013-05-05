@@ -1,6 +1,7 @@
 #ifndef GS105E_H
 #define GS105E_H
 #include <stdio.h>
+#include <stdint.h>
 
 #define GS_MODEL 0x0001
 #define GS_NAME 0x0003
@@ -50,7 +51,7 @@
 int packetId;
 
 struct vlan {
-        int id;
+        uint16_t id;
         char members;
         char tag;
         struct vlan * next;
@@ -126,8 +127,8 @@ void makeHeader(unsigned int queryType);
 
 void gs105e_query (void);
 
-int gs105e_addVlan(int vlanId) ;
-int gs105e_delVlan(int vlanId) ;
+int gs105e_addVlan(uint16_t vlanId) ;
+int gs105e_delVlan(uint16_t vlanId) ;
 int gs105e_discover(void);
 
 int gs105e_setName(char * data);
