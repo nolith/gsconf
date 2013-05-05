@@ -10,7 +10,7 @@ static char passwordSecret[19] = {0x4e , 0x74 , 0x67 , 0x72 , 0x53 , 0x6d , 0x61
 unsigned char * gs105e_queryData;
 unsigned int gsDataLen;
 
-struct vlan * getVlanSetting(unsigned int vlanId) {
+struct vlan * getVlanSetting(uint16_t vlanId) {
         struct vlan *  _vlan = settings.vlans;
         
         while (_vlan != NULL) {
@@ -22,7 +22,7 @@ struct vlan * getVlanSetting(unsigned int vlanId) {
         return NULL;
 }
 
-void addVlanSetting(unsigned int vlanId, unsigned char tagged, unsigned char member) {
+void addVlanSetting(uint16_t vlanId, unsigned char tagged, unsigned char member) {
         struct vlan * old = settings.vlans;
         struct vlan * new = (struct vlan *) malloc (sizeof( struct vlan) );
         new->id = vlanId;
@@ -151,9 +151,9 @@ static unsigned int toUInt4(char * data) {
         return a;
 }
 
-static unsigned int toUInt(char * data) {
+uint16_t toU16I(char *data) {
         int n;
-        unsigned int a = 0;
+        uint16_t a;
         for (n = 0; n < 2; n++) {
                 a <<= 8;
                 a |= ((unsigned int )data[n]) & 0xFF;
@@ -203,7 +203,7 @@ void gs105e_interpret_slice(unsigned int ID, char * data, int len) {
                         p->errors = toLong(&data[41]);
                         break;
                 case GS_VLAN:;
-                        unsigned int vlanId = toUInt(data);
+                        uint16_t vlanId = toU16I(data);
                         unsigned char tagged = (unsigned char) data[3];
                         unsigned char memberOf = (unsigned char) data[2];
                         struct vlan * _vlan = getVlanSetting(vlanId);
@@ -323,7 +323,7 @@ int gs105e_act() {
 }
 
 
-int gs105e_addVlan(int vlanId) {
+int gs105e_addVlan(uint16_t vlanId) {
         makeHeader(QR_EXEC);
         
         char data[4] = {vlanId / 256, vlanId % 256, 0, 0};
@@ -334,7 +334,7 @@ int gs105e_addVlan(int vlanId) {
         
 }
 
-int gs105e_setVlanMembers(unsigned int vlanId, unsigned int members, unsigned int tagged) {
+int gs105e_setVlanMembers(uint16_t vlanId, unsigned int members, unsigned int tagged) {
         char data[4] = {0, vlanId & 0xFF, (char)members & 0xFF, (char)tagged & 0xFF};
         makeHeader(QR_EXEC);
         addActData(GS_VLAN, 4, data);
@@ -343,7 +343,7 @@ int gs105e_setVlanMembers(unsigned int vlanId, unsigned int members, unsigned in
 }
 
 
-int gs105e_delVlan(int vlanId) {
+int gs105e_delVlan(uint16_t vlanId) {
         makeHeader(QR_EXEC);
         
         char data[2] = {vlanId / 256, vlanId % 256};
@@ -509,7 +509,7 @@ void gs105e_queryAll(void) {
                 }
                 settings.vlans = NULL;
         }
-                
+
         makeHeader(QR_REQ);
         addQuery(GS_MODEL);
         addQuery(GS_NAME);
@@ -525,5 +525,5 @@ void gs105e_queryAll(void) {
         addQuery(GS_VLANSETTING);
         
         gs105e_query ();
-         gs105e_receive();       
+        gs105e_receive();
 }
