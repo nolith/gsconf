@@ -112,8 +112,6 @@ struct gs105e_discovered {
         struct gs105e_discovered * next;
 };
 
-static char passwordSecret[19] = {0x4e , 0x74 , 0x67 , 0x72 , 0x53 , 0x6d , 0x61 , 0x72 , 0x74 , 0x53 , 0x77 , 0x69 , 0x74 , 0x63 , 0x68 , 0x52 , 0x6f , 0x63 , 0x6b};
-
 struct gs105e_discovered * gs105e_devs ;
 
 struct gs105e_settings settings;
@@ -125,10 +123,18 @@ void gs105e_init(void) ;
 void makeHeader(unsigned int queryType);
 
 void gs105e_query (void);
+void gs105e_queryAll(void);
 
 int gs105e_addVlan(int vlanId) ;
 int gs105e_delVlan(int vlanId) ;
+int gs105e_vlanEnable(void);
+int gs105e_setVlanMembers(unsigned int vlanId, unsigned int members, unsigned int tagged);
 int gs105e_discover(void);
 
 int gs105e_setName(char * data);
+
+int gs105e_dhcpSettings(int action);
+int gs105e_cableDiagnostics(int port);
+int gs105e_restart(void);
+int gs105e_mirrorPorts(int outputPort, int mirrorMask);
 #endif

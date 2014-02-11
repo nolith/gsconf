@@ -32,7 +32,7 @@ void shell_vlan(char ** argv, int elem) {
                 while (vl != NULL) {
                         printf("%u\t", vl->id & 0xFFFF);
                         for (n = 0; n < 5; n++)
-                                printf("%s\t", vl->members & (0x80 >> n) ? (vl->tag & (0x80 >> n) ? "\033[93mT\033[0m" : "\033[92mU\033[0m") : "\033[91m-\033[0m", (unsigned int) vl->members);
+                                printf("%s\t", vl->members & (0x80 >> n) ? (vl->tag & (0x80 >> n) ? "\033[93mT\033[0m" : "\033[92mU\033[0m") : "\033[91m-\033[0m");
                         printf("\n");
                         vl = vl->next;
                 }
@@ -98,7 +98,7 @@ void shell_vlan(char ** argv, int elem) {
                 
                 m = atoi(argv[3]);
                 
-                if (m < 1 | m > 5) {
+                if (m < 1 || m > 5) {
                         printf("Invalid Port ID\n");
                         return;
                 }         
@@ -136,7 +136,7 @@ void shell_vlan(char ** argv, int elem) {
                 
                 m = atoi(argv[3]);
                 
-                if (m < 1 | m > 5) {
+                if (m < 1 || m > 5) {
                         printf("Invalid Port ID\n");
                         return;
                 }         

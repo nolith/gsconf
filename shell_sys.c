@@ -3,8 +3,6 @@
 
 
 void shell_sys(char ** argv, int elem) {
-        int n, i, m, o;
-        
         if (elem == 1) {
                 printf(" sys [show|name|password|restart] \n");
                 return;

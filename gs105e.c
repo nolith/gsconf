@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static char passwordSecret[19] = {0x4e , 0x74 , 0x67 , 0x72 , 0x53 , 0x6d , 0x61 , 0x72 , 0x74 , 0x53 , 0x77 , 0x69 , 0x74 , 0x63 , 0x68 , 0x52 , 0x6f , 0x63 , 0x6b};
+
 unsigned char * gs105e_queryData;
 unsigned int gsDataLen;
 
@@ -30,7 +32,7 @@ void addVlanSetting(unsigned int vlanId, unsigned char tagged, unsigned char mem
         settings.vlans = new;
 }
 
-void hexDump (char * data, int len) {
+static void hexDump (unsigned char * data, int len) {
         int n;
         for (n = 0; n < len; n++) {
                 if (n % 16 == 0)
@@ -39,12 +41,12 @@ void hexDump (char * data, int len) {
         }
         printf("\n");
 }
-void addData(char * data, int len) {
+static void addData(char * data, int len) {
         gsDataLen += len;
-        gs105e_queryData = (char * )realloc(gs105e_queryData, sizeof(char) * gsDataLen);
+        gs105e_queryData = (unsigned char * )realloc(gs105e_queryData, sizeof(unsigned char) * gsDataLen);
         memcpy(&gs105e_queryData[gsDataLen - len], data, len);
 }
-void addQuery(int qid) {
+static void addQuery(int qid) {
         char queryData[] = {qid / 256, qid % 256, 0, 0};
         addData(queryData, 4);
 }
@@ -123,15 +125,15 @@ void gs105e_query (void) {
         emptyBuffer();
         gs105e_queryData[23] = newPacketId();
         
-        if (gs105e_queryData[gsDataLen - 4] != 0xFF | gs105e_queryData[gsDataLen - 3] != 0xFF | gs105e_queryData[gsDataLen - 2] != 0x00 | gs105e_queryData[gsDataLen - 1] != 0x00)
+        if (gs105e_queryData[gsDataLen - 4] != 0xFF || gs105e_queryData[gsDataLen - 3] != 0xFF || gs105e_queryData[gsDataLen - 2] != 0x00 || gs105e_queryData[gsDataLen - 1] != 0x00)
                 addData("\xFF\xFF\x00\x00", 4);
         sendBroadcast(gs105e_queryData, gsDataLen);
         
 }
 
-unsigned long toLong(char * data) {
+static unsigned long toLong(char * data) {
         int n;
-        unsigned long a;
+        unsigned long a = 0;
         for (n = 0; n < 8; n++) {
                 a <<= 8;
                 a |= ((unsigned long)data[n]) & 0xFF;
@@ -139,9 +141,9 @@ unsigned long toLong(char * data) {
         return a;
 }
 
-unsigned int toUInt4(char * data) {
+static unsigned int toUInt4(char * data) {
         int n;
-        unsigned int a;
+        unsigned int a = 0;
         for (n = 0; n < 4; n++) {
                 a <<= 8;
                 a |= ((unsigned int )data[n]) & 0xFF;
@@ -149,9 +151,9 @@ unsigned int toUInt4(char * data) {
         return a;
 }
 
-unsigned int toUInt(char * data) {
+static unsigned int toUInt(char * data) {
         int n;
-        unsigned int a;
+        unsigned int a = 0;
         for (n = 0; n < 2; n++) {
                 a <<= 8;
                 a |= ((unsigned int )data[n]) & 0xFF;
@@ -223,7 +225,7 @@ void gs105e_interpret_slice(unsigned int ID, char * data, int len) {
                         p->state = state;
                         break;
                 case GS_PORTDIAG:;
-                        p = &settings.portStatistics[data[0]];
+                        p = &settings.portStatistics[(unsigned)data[0]];
                         p->cableError = (char)toUInt4(&data[1]);
                         p->errorDist = (char)toUInt4(&data[5]);
                         break;
@@ -251,7 +253,7 @@ int gs105e__receive(void) {
 //                printf("Received No or Invalid Packet\n");
                 return -1;
         }
-        if (memcmp(&data[8], myMac, 6) | data[0] != 0x01 | (!(data[1] == 0x02 | data[1] == 0x04))) {
+        if (memcmp(&data[8], myMac, 6) || data[0] != 0x01 || (!(data[1] == 0x02 || data[1] == 0x04))) {
                 return -1;
         }
         
@@ -291,7 +293,7 @@ int gs105e_actRecv(void) {
 //                printf("Received No or Invalid Packet\n");
                 return -1;
         }
-        if (memcmp(&data[8], myMac, 6) | data[0] != 0x01 | (!(data[1] == 0x02 | data[1] == 0x04))) {
+        if (memcmp(&data[8], myMac, 6) || data[0] != 0x01 || (!(data[1] == 0x02 || data[1] == 0x04))) {
                 gs105e_actRecv();
                 return -1;
         }
@@ -308,6 +310,7 @@ int gs105e_actRecv(void) {
                 }
                 return data[2];
         }
+	return -1;
 }
 int gs105e_act() {
         gs105e_query();
@@ -350,7 +353,7 @@ int gs105e_delVlan(int vlanId) {
         return gs105e_act();
         
 }
-int gs105e_restart(int vlanId) {
+int gs105e_restart(void) {
         makeHeader(QR_EXEC);
         
         char data[1] = {1};

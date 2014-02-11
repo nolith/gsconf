@@ -58,7 +58,7 @@ void init_socket() {
 }
 
 
-int sendBroadcast(char * data, unsigned int len) {
+int sendBroadcast(unsigned char * data, unsigned int len) {
         
         int bcp = 1;
         if (setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (void *) &bcp, sizeof(bcp)) < 0) {
@@ -80,7 +80,7 @@ int sendBroadcast(char * data, unsigned int len) {
 int recvBroadcast(char * data) {
 
         struct sockaddr_in sa_in;
-        int sa_len = sizeof(sa_in);
+        socklen_t sa_len = sizeof(sa_in);
         struct 	timeval tout;
         tout.tv_sec = 0;
         tout.tv_usec = 500000;
@@ -98,7 +98,7 @@ int recvBroadcast(char * data) {
 int recvBroadcast_tout(char * data) {
 
         struct sockaddr_in sa_in;
-        int sa_len = sizeof(sa_in);
+        socklen_t sa_len = sizeof(sa_in);
         struct 	timeval tout;
         tout.tv_sec = 5;
         tout.tv_usec = 0;

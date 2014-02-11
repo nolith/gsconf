@@ -11,16 +11,19 @@ int shellHandler = 0;
 
 
 
-int main () {
-        int n;
-        
+int main (int argc, char** argv) {
         init_socket();
-        
-        myMac = get_mac("eth0");
-        
+
+	if (argc == 3 && !strcmp(argv[1], "-i"))
+		myMac = get_mac(argv[2]);
+	else
+		myMac = get_mac("eth0");
+
         gs105e_init();
 
         shell();
+
+	return 0;
 }
 
 

@@ -11,7 +11,7 @@ void shell_port(char ** argv, int elem) {
         if (strncmp(argv[1], "show", 4) == 0) {
                 printf("Port\tSpeed\t\tBytes In\t\tBytes Out\n");
                 for (n = 0; n< 5; n++) {
-                        printf("%i\t%s\t% 8lu\t\t% 8lu\n", n, 
+                        printf("%i\t%s\t%11lu\t\t%11lu\n", n,
                         (settings.portStatistics[n].state == 0x05 ? "1000 Mbit/s" : (settings.portStatistics[n].state == 0x04 ? "100 Mbit/s" : (settings.portStatistics[n].state == 0x03 ? "10 Mbit/s":  (settings.portStatistics[n].state == 0x00 ? "No Cable": "???")))),
                         settings.portStatistics[n].bytesIn,
                         settings.portStatistics[n].bytesOut
@@ -25,7 +25,7 @@ void shell_port(char ** argv, int elem) {
                 
                 n = atoi(argv[2]);
                 
-                if (n < 1 | n > 5) {
+                if (n < 1 || n > 5) {
                         printf("Invalid Port\n");
                         return;
                 }
@@ -46,7 +46,7 @@ void shell_port(char ** argv, int elem) {
                         if (settings.portStatistics[n].errorDist == 0 )
                                 printf("\033[92mSeems no Cable is connected!?\033[0m\n");
                         else
-                                printf("\033[92mCable is fine!\033[0m\n", settings.portStatistics[n].errorDist);
+                                printf("\033[92mCable is fine!\033[0m\n");
                 }
         } else if (strncmp(argv[1], "mirror", 6) == 0) {
                 
@@ -66,7 +66,7 @@ void shell_port(char ** argv, int elem) {
                 
                 n = atoi(argv[2]);
                 
-                if (n < 1 | n > 5) {
+                if (n < 1 || n > 5) {
                         printf("Invalid Port %i\n", n);
                         return;
                 }
@@ -75,7 +75,7 @@ void shell_port(char ** argv, int elem) {
                 
                 for (m = 3; m < elem; m++) {
                         i = atoi(argv[m]);
-                        if (i < 1 | i > 5) {
+                        if (i < 1 || i > 5) {
                                 printf("Invalid Port %i\n", i);
                                 return;
                         }

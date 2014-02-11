@@ -67,7 +67,6 @@ void printError(int errCode) {
 
 void shell_set(char ** argv, int elem) {
 
-        int n;
         if (strncmp(argv[1], "name", 4) == 0) {
                 if (elem != 3) {
                         printf("set name [name]\n");
@@ -77,7 +76,7 @@ void shell_set(char ** argv, int elem) {
         }
 }
 
-char * copyString(char * data) {
+char * copyString(const char * data) {
         char * ret = (char * )malloc(strlen(data) + 1);
         memcpy(ret, data, strlen(data) + 1);
         ret[strlen(data)] = 0;
@@ -86,7 +85,11 @@ char * copyString(char * data) {
 
 void password(void) {
         if (settings.password == NULL) {
-               printf("\033[91mWarning: As the protocol of the switch wants it that way, all configuration packets are send as broadcasts. Even though Netgear is 'encrypting' the password it, the encryption used, is one step away from plaintext.\033[0m\n");
+               printf("\033[91mWarning: As the protocol of the switch wants it that way,"
+			" all configuration packets are send as broadcasts."
+			" Even though Netgear is 'encrypting' the password, the encryption used,"
+			" is one step away from plaintext. To be safe, use a dedicated VLAN"
+			" to manage the switch.\033[0m\n");
                 settings.password = copyString((char *)getpass("Password: "));
         }
 }

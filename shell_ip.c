@@ -1,7 +1,6 @@
 #include "shell.h"
 void shell_ip(char ** argv, int elem) {
 
-        int n;
         if (elem == 1) {
                 printf(" ip [show|dhcp|set] \n");
                 return;
