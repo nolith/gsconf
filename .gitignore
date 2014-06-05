@@ -1,3 +1,4 @@
 *.o
 .gdb_history
 *.swp
+gsconfig
