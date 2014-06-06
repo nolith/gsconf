@@ -1,6 +1,7 @@
 // -*- mode: C; c-basic-offset: 8; c-tab-width: 8; indent-tabs-mode: nil; -*-
 #include "shell.h"
 
+#define NO_DEV "nodev"
 
 unsigned int countTokens(char * data, char * deli) {
         unsigned int n = 0;
@@ -95,7 +96,56 @@ void password(void) {
         }
 }
 
+int shell_discover(struct gs105e_discovered* ddev) {
+        int n = gs105e_discover();
 
+        printf("Discovered \033[92m%i\033[0m devices\n", n);
+
+        ddev = gs105e_devs;
+
+        printf("ID\tName\t\tMAC\t\tIP\n");
+        while (ddev != NULL) {
+                printf("%i\t%s\t\t%X:%X:%X:%X:%X:%X\t%u.%u.%u.%u\n",
+                       ddev->id,
+                       ddev->name,
+                       ddev->mac[0]&0xff,
+                       ddev->mac[1]&0xff,
+                       ddev->mac[2]&0xff,
+                       ddev->mac[3]&0xff,
+                       ddev->mac[4]&0xff,
+                       ddev->mac[5]&0xff,
+                       ddev->ip[0]&0xff,
+                       ddev->ip[1]&0xff,
+                       ddev->ip[2]&0xff,
+                       ddev->ip[3]&0xff);
+                ddev = ddev->next;
+        }
+
+        return n;
+}
+
+char* shell_select(struct gs105e_discovered* ddev, int id) {
+        if (id == 0){
+                printf("Please select a valid ID\n");
+                return NO_DEV;
+        }
+
+        ddev = gs105e_devs;
+        while (ddev != NULL) {
+                if (id == ddev->id)
+                        break;
+                ddev = ddev->next;
+        }
+
+        if (ddev == NULL){
+                printf("Please select a valid ID\n");
+                return NO_DEV;
+        }
+
+        memcpy(settings.mac, ddev->mac, 6);
+        gs105e_queryAll();
+        return ddev->name;
+}
 
 
 int shell (void) {
@@ -105,28 +155,14 @@ int shell (void) {
         char **argv;
         int n;
         
-        struct gs105e_discovered * ddev;
+        struct gs105e_discovered * ddev = NULL;
         
-        char * dev = "nodev";
+        char * dev = NO_DEV;
         
-        n = gs105e_discover();
-        printf("Discovered \033[92m%i\033[0m devices\n", n);
-
-        ddev = gs105e_devs;
-
-        printf("ID\tName\t\tMAC\t\tIP\n");
-
-        while (ddev != NULL) {
-                printf("%i\t%s\t\t%X:%X:%X:%X:%X:%X\t%u.%u.%u.%u\n", ddev->id, ddev->name, ddev->mac[0]&0xff, ddev->mac[1]&0xff, ddev->mac[2]&0xff, ddev->mac[3]&0xff, ddev->mac[4]&0xff, ddev->mac[5]&0xff, ddev->ip[0]&0xff, ddev->ip[1]&0xff, ddev->ip[2]&0xff, ddev->ip[3]&0xff);
-                ddev = ddev->next;
-        }
-
+        n = shell_discover(ddev);
         if (n == 1) {
                 printf("only one switch, selecting 1\n");
-
-                memcpy(settings.mac, gs105e_devs->mac, 6);
-                gs105e_queryAll();
-                dev = gs105e_devs->name;
+                dev = shell_select(ddev, 1);
         }
         
         while (1) {
@@ -163,24 +199,10 @@ int shell (void) {
                 }
 
                 if (strncmp(argv[0], "discover", 8) == 0) {
-                        n = gs105e_discover();
-                        printf("Discovered \033[92m%i\033[0m devices\n", n);
-                        
-                        ddev = gs105e_devs;
-                        
-                        printf("ID\tName\t\tMAC\t\tIP\n");
-                        
-                        while (ddev != NULL) {
-                                printf("%i\t%s\t\t%X:%X:%X:%X:%X:%X\t%u.%u.%u.%u\n", ddev->id, ddev->name, ddev->mac[0]&0xff, ddev->mac[1]&0xff, ddev->mac[2]&0xff, ddev->mac[3]&0xff, ddev->mac[4]&0xff, ddev->mac[5]&0xff, ddev->ip[0]&0xff, ddev->ip[1]&0xff, ddev->ip[2]&0xff, ddev->ip[3]&0xff);
-                                ddev = ddev->next;
-                        }
-                        
+                        n = shell_discover(ddev);
                         if (n == 1) {
                                 printf("only one switch, selecting 1\n");
-                                
-                                memcpy(settings.mac, gs105e_devs->mac, 6);
-                                gs105e_queryAll();
-                                dev = gs105e_devs->name;
+                                dev = shell_select(ddev, 1);
                         }
                 }
                 
@@ -188,29 +210,11 @@ int shell (void) {
                 
                 if (strncmp(argv[0], "select", 6) == 0 && elem == 2) {
                         n = atoi(argv[1]);
-                        if (n == 0){
-                                printf("Please select a valid ID\n");
-                                continue;
-                        }
-                        ddev = gs105e_devs;
-                        while (ddev != NULL) {
-                                if (n == ddev->id)
-                                        break;
-                                ddev = ddev->next;
-                        }
-                        
-                        if (ddev == NULL){
-                                printf("Please select a valid ID\n");
-                                continue;
-                        }
-                        
-                        memcpy(settings.mac, ddev->mac, 6);
-                        gs105e_queryAll();
-                        dev = ddev->name;
-                        
+                        dev = shell_select(ddev, n);
+                        continue;
                 }
 
-                if (strncmp(dev, "nodev", 6) == 0){
+                if (strncmp(dev, NO_DEV, 6) == 0){
                         printf("Discover and select device first!\n");
                         continue;
                 }
