@@ -1,3 +1,4 @@
+// -*- mode: C; c-basic-offset: 8; c-tab-width: 8; indent-tabs-mode: nil; -*-
 #include "shell.h"
 
 
@@ -157,7 +158,8 @@ int shell (void) {
 
                 if (strncmp(argv[0], "help", 4) == 0) {
                         printf("Available commands: \n");
-                        printf("[discover|select|nodev|ip|vlan|port|sys] \n");
+                        printf("[discover|select|ip|vlan|port|sys|exit] \n");
+                        continue;
                 }
 
                 if (strncmp(argv[0], "discover", 8) == 0) {
