@@ -1,4 +1,4 @@
-
+// -*- mode: C; c-basic-offset: 8; c-tab-width: 8; indent-tabs-mode: nil; -*-
 #include "gs105e.h"
 #include "socket.h"
 #include <string.h>
@@ -473,7 +473,11 @@ int gs105e_discover(void) {
                 free(ddev_T);
         }
         gs105e_devs = NULL;
-        
+
+        //discover requests must have an empty MAC
+        if(memcmp(settings.mac, "\x00\x00\x00\x00\x00\x00", 6) != 0)
+           memcpy(settings.mac, "\x00\x00\x00\x00\x00\x00", 6);
+
         makeHeader(QR_REQ);
         addQuery(GS_MODEL);
         addQuery(GS_NAME);

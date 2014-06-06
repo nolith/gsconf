@@ -3,6 +3,8 @@
 
 #define NO_DEV "nodev"
 
+char* shell_select(struct gs105e_discovered* ddev, int id);
+
 unsigned int countTokens(char * data, char * deli) {
         unsigned int n = 0;
         char * lp;
@@ -96,10 +98,10 @@ void password(void) {
         }
 }
 
-int shell_discover(struct gs105e_discovered* ddev) {
-        int n = gs105e_discover();
+char* shell_discover(struct gs105e_discovered* ddev, int *n) {
+        *n = gs105e_discover();
 
-        printf("Discovered \033[92m%i\033[0m devices\n", n);
+        printf("Discovered \033[92m%i\033[0m devices\n", *n);
 
         ddev = gs105e_devs;
 
@@ -121,30 +123,37 @@ int shell_discover(struct gs105e_discovered* ddev) {
                 ddev = ddev->next;
         }
 
-        return n;
+        if (*n == 1) {
+                printf("only one switch, selecting 1\n");
+                return shell_select(ddev, 1);
+        }
+
+        return NO_DEV;
 }
 
 char* shell_select(struct gs105e_discovered* ddev, int id) {
-        if (id == 0){
+        char *dev = NULL;
+        if (id != 0) {
+                ddev = gs105e_devs;
+                while (ddev != NULL) {
+                        if (id == ddev->id) {
+                                memcpy(settings.mac, ddev->mac, 6);
+                                gs105e_queryAll();
+
+                                dev = ddev->name;
+                                break;
+                        }
+                        ddev = ddev->next;
+                }
+        }
+
+        if(dev == NULL) {
                 printf("Please select a valid ID\n");
-                return NO_DEV;
+                dev = NO_DEV;
+                memcpy(settings.mac, "\x00\x00\x00\x00\x00\x00", 6);
         }
 
-        ddev = gs105e_devs;
-        while (ddev != NULL) {
-                if (id == ddev->id)
-                        break;
-                ddev = ddev->next;
-        }
-
-        if (ddev == NULL){
-                printf("Please select a valid ID\n");
-                return NO_DEV;
-        }
-
-        memcpy(settings.mac, ddev->mac, 6);
-        gs105e_queryAll();
-        return ddev->name;
+        return dev;
 }
 
 
@@ -157,14 +166,8 @@ int shell (void) {
         
         struct gs105e_discovered * ddev = NULL;
         
-        char * dev = NO_DEV;
-        
-        n = shell_discover(ddev);
-        if (n == 1) {
-                printf("only one switch, selecting 1\n");
-                dev = shell_select(ddev, 1);
-        }
-        
+        char *dev = shell_discover(ddev, &n);
+
         while (1) {
                 printf("\033[96mgs (\033[93m%s\033[96m)# \033[0m", dev);
                 cmd[0] = 0;
@@ -199,11 +202,8 @@ int shell (void) {
                 }
 
                 if (strncmp(argv[0], "discover", 8) == 0) {
-                        n = shell_discover(ddev);
-                        if (n == 1) {
-                                printf("only one switch, selecting 1\n");
-                                dev = shell_select(ddev, 1);
-                        }
+                        dev = shell_discover(ddev, &n);
+                        continue;
                 }
                 
 
